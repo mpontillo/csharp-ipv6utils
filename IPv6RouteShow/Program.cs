@@ -4,10 +4,26 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Net;
 
     internal class Ipv6Route
     {
-        public string DestinationPrefix { get; set; }
+        public int PrefixLength { get; private set; }
+        public IPAddress DestinationAddress { get; private set; }
+
+        private string destinationPrefix;
+        public string DestinationPrefix
+        {
+            get { return destinationPrefix; }
+
+            set
+            {
+                destinationPrefix = value;
+                var split = value.Split('/');
+                DestinationAddress = IPAddress.Parse(split[0]);
+                PrefixLength = Int32.Parse(split[1]);
+            }
+        }
         public string SourcePrefix { get; set; }
         public int InterfaceIndex { get; set; }
         public string InterfaceName { get; set; }
@@ -62,10 +78,10 @@
                         {
                             StartInfo =
                                 {
+                                    FileName = "netsh.exe",
                                     Arguments = "interface ipv6 show route verbose",
                                     UseShellExecute = false,
                                     RedirectStandardOutput = true,
-                                    FileName = "netsh.exe"
                                 }
                         };
             p.Start();
@@ -143,8 +159,6 @@
                 {
                     blankLines = 0;
                 }
-
-
 
                 var nullbleKvp = ScanLabel(line);
                 if (nullbleKvp == null)
