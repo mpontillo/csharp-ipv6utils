@@ -105,6 +105,20 @@
             return null;
         }
 
+        static readonly IDictionary<string, Action<Ipv6Route, string>> _mapper = new Dictionary<string, Action<Ipv6Route, string>>
+                                 {
+                                     {"Destination Prefix:",     (r, s) => r.DestinationPrefix = s},
+                                     {"Source Prefix:",          (r, s) => r.SourcePrefix = s},
+                                     {"Interface Index:",        (r, s) => r.SetInterfaceIndex(s)},
+                                     {"Gateway/Interface Name:", (r, s) => r.InterfaceName = s},
+                                     {"Publish:",                (r, s) => r.SetPublish(s)},
+                                     {"Type:",                   (r, s) => r.Type = s},
+                                     {"Metric:",                 (r, s) => r.SetMetric(s)},
+                                     {"SitePrefixLength",        (r, s) => r.SetSitePrefixLength(s)},
+                                     {"ValidLifeTime",           (r, s) => r.ValidLifeTime = s},
+                                     {"PreferredLifeTime",       (r, s) => r.PreferredLifeTime = s},
+                                 };
+
         private static List<Ipv6Route> ParseRoutes(StreamReader netshOutput)
         {
             string line;
@@ -130,19 +144,7 @@
                     blankLines = 0;
                 }
 
-                var mapper = new Dictionary<string, Action<Ipv6Route, string>>
-                                 {
-                                     {"Destination Prefix:",     (r, s) => r.DestinationPrefix = s},
-                                     {"Source Prefix:",          (r, s) => r.SourcePrefix = s},
-                                     {"Interface Index:",        (r, s) => r.SetInterfaceIndex(s)},
-                                     {"Gateway/Interface Name:", (r, s) => r.InterfaceName = s},
-                                     {"Publish:",                (r, s) => r.SetPublish(s)},
-                                     {"Type:",                   (r, s) => r.Type = s},
-                                     {"Metric:",                 (r, s) => r.SetMetric(s)},
-                                     {"SitePrefixLength",        (r, s) => r.SetSitePrefixLength(s)},
-                                     {"ValidLifeTime",           (r, s) => r.ValidLifeTime = s},
-                                     {"PreferredLifeTime",       (r, s) => r.PreferredLifeTime = s},
-                                 };
+
 
                 var nullbleKvp = ScanLabel(line);
                 if (nullbleKvp == null)
@@ -154,9 +156,9 @@
                 var label = kvp.Key;
                 var value = kvp.Value;
                 
-                if(mapper.ContainsKey(label))
+                if(_mapper.ContainsKey(label))
                 {
-                    var action = mapper[label];
+                    var action = _mapper[label];
                     action.Invoke(route, value);
                     routeHasData = true;
                 }
